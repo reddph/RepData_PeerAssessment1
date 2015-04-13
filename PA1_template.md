@@ -9,7 +9,8 @@ output:
 
 Load the required r-packages for processing the dataset
 
-```{r reference packages for analysis,echo = TRUE, results="hide"}
+
+```r
 require(dplyr)
 library(dplyr)
 
@@ -23,13 +24,12 @@ require(knitr)
 library(knitr)
 ```
 
-```{r setoptions, echo=FALSE, cache=TRUE}
-opts_chunk$set(echo=FALSE, cache=TRUE)
-```
+
 
 We read in the activity dataset from the raw text file included in the zip archive. The data is a comma delimited file, and missing values are inherently coded as NA fields in the input data file. The header data is included in the reading.
 
-```{r read activity data,echo = TRUE}
+
+```r
 filePath <- "NA"
 if(file.exists("./activity.csv"))
 {
@@ -42,53 +42,94 @@ if(file.exists("./activity/activity.csv"))
 }
 
 filePath
+```
 
+```
+## [1] "./activity/activity.csv"
+```
+
+```r
 activity <- read.csv(filePath)
 ```
 
 Summary and the Column names of the activity dataset:
 
-```{r Summary of the activity data, echo = TRUE}
+
+```r
 summary(activity)
+```
+
+```
+##      steps                date          interval     
+##  Min.   :  0.00   2012-10-01:  288   Min.   :   0.0  
+##  1st Qu.:  0.00   2012-10-02:  288   1st Qu.: 588.8  
+##  Median :  0.00   2012-10-03:  288   Median :1177.5  
+##  Mean   : 37.38   2012-10-04:  288   Mean   :1177.5  
+##  3rd Qu.: 12.00   2012-10-05:  288   3rd Qu.:1766.2  
+##  Max.   :806.00   2012-10-06:  288   Max.   :2355.0  
+##  NA's   :2304     (Other)   :15840
+```
+
+```r
 names(activity)
+```
+
+```
+## [1] "steps"    "date"     "interval"
 ```
 
 ## What is mean total number of steps taken per day?
 
 1. Summarize the sum of the daily steps using grouping of activity data set by date. The summarization is kept in a data frame designated by dailyActivity. This yields the total number of steps per day, averaged across all intervals in a day
 
-```{r Daily summarization of activity, echo = TRUE}
+
+```r
 dailyActivity <- summarize(group_by(activity,date),sum(steps,na.rm=TRUE))
 names(dailyActivity) <- c("date", "StepSum")
 ```
 
 2. Draw a histogram of the total number of steps per day.
-```{r  Histogram of the total number of steps per day, fig.height=5, fig.width=10}
+
+```r
 histogram(~dailyActivity$StepSum, breaks=30, na.rm=TRUE, main="Histogram of Total Number of Steps/Day", xlab="Total Number of Steps/Day", ylab="Relative Frequency")
 ```
 
+![plot of chunk Histogram of the total number of steps per day](figure/Histogram of the total number of steps per day-1.png) 
+
 3. Compute the mean of the total number of steps taken per day ignoring the missing steps data
-```{r Mean of steps per day ignoring NA, echo=TRUE}
+
+```r
 mean(dailyActivity$StepSum,na.rm=TRUE)
 ```
 
+```
+## [1] 9354.23
+```
+
 4. Compute the median of the total number of steps taken per day ignoring the missing steps data
-```{r Median of steps per day ignoring NA, echo=TRUE}
+
+```r
 median(dailyActivity$StepSum, na.rm=TRUE)
+```
+
+```
+## [1] 10395
 ```
 
 ## What is the average daily activity pattern?
 
 1. Summarize the average number of steps in each 5-Minute interval using grouping of activity by interval averaged over all days in the activity set. The summarization is kept in a data frame designated as fiveMinActivity  
 
-```{r Mean of steps in 5-Minute interval, echo=TRUE}
+
+```r
 fiveMinActivity <- summarize(group_by(activity,interval),mean(steps,na.rm=TRUE))
 names(fiveMinActivity) <- c("interval", "AvgNumberOfSteps")
 ```
 
 2. Draw a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)  
 
-```{r Time Series Panel Plot, fig.height=5, fig.width=10}
+
+```r
 xyplot(AvgNumberOfSteps ~ interval,
        fiveMinActivity,
        type = "l", 
@@ -100,25 +141,50 @@ xyplot(AvgNumberOfSteps ~ interval,
        xlab="5-Minute Interval"
 )
 ```
+
+![plot of chunk Time Series Panel Plot](figure/Time Series Panel Plot-1.png) 
 3. Rank top 5 of the 5-minute interval with the maximum number of steps averaged over all days in the dataset  
 
-```{r Rank top 5 for max number of steps, echo=TRUE}
+
+```r
 rank5MinActivity_top5 <- head(arrange(fiveMinActivity, desc(AvgNumberOfSteps)))
 rank5MinActivity_top5
 ```
 
+```
+## Source: local data frame [6 x 2]
+## 
+##   interval AvgNumberOfSteps
+## 1      835         206.1698
+## 2      840         195.9245
+## 3      850         183.3962
+## 4      845         179.5660
+## 5      830         177.3019
+## 6      820         171.1509
+```
+
 4. Identify the 5-minute interval with the maximum number of steps averaged over all days in the dataset  
-```{r Interval with Max steps taken, echo=TRUE}
+
+```r
 maxAvgSteps_5MinInterval <- rank5MinActivity_top5$interval[1]
 maxAvgSteps_5MinInterval
+```
+
+```
+## [1] 835
 ```
 
 ## Imputing missing values
 
 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)  
 
-```{r Total number of missing values, echo=TRUE}
+
+```r
 length(which(is.na(activity$steps)))
+```
+
+```
+## [1] 2304
 ```
 
 ### Filling in all of the missing values in the dataset
@@ -127,72 +193,97 @@ Using a simple strategy to fill in missing (NA) step data by filling in the aver
 
 1. Merge activity with fiveMinActivity data frame (average steps taken in 5-minute interval averaged over all days in the activity dataset) into a data frame designated as activityMerged. This data frame has an additional column corresponding to AvgNumberOfSteps from the previous analysis  
 
-```{r Merge activity with fiveMinActivity using interval, echo=TRUE}
+
+```r
 activityMerged <- merge(activity,fiveMinActivity,by.x="interval",by.y="interval")
 dim(activityMerged)
+```
+
+```
+## [1] 17568     4
+```
+
+```r
 names(activityMerged)
+```
+
+```
+## [1] "interval"         "steps"            "date"            
+## [4] "AvgNumberOfSteps"
 ```
 
 2. Filter activityMerged by missing data in the steps column (i.e., NA values) into a data frame designated as tactNA. Also filter activityMerged by no NA (i.e., non-NA step data) into a data frame designated as tact  
 
-```{r Subset activityMerged into NA and non-NA step values, echo=TRUE}
+
+```r
 tactNA <- filter(activityMerged,is.na(steps))
 tact <- filter(activityMerged,!is.na(steps))
 ```
 
 3. Assert that the recomposed NA and Non-NA datasets add up to the row numbers in the original dataset  
 
-```{r Assert that merging filled and non-NA rows have no data loss, echo=TRUE}
+
+```r
 stopifnot(nrow(tact) + nrow(tactNA) == nrow(activity))
 ```
 4. Reconstruct the NA subset to take the AvgNumberOfSteps in place of the steps, and construct the non-NA subset to keep the original data  
 
-```{r Reconstruct the missing NA subset with AvgNumberOfSteps, echo=TRUE}
+
+```r
 activityNA <- select(tactNA,AvgNumberOfSteps,date,interval)
 activityNoNA <- select(tact,steps,date,interval)
 names(activityNA) = c("steps", "date", "interval")
 ```
 5. Merge the two reconstructed datasets using rbind. The resulting dataset will no longer have any missing values for step. The resulting data frame is designated as activityFill  
 
-```{r Reconstitute activity with all missing values filled up, echo=TRUE}
+
+```r
 activityFill <- rbind(activityNA, activityNoNA)
 stopifnot(!any(is.na(activityFill$steps)))
 ```
 6. Summarize the reconstituted activity dataset with no missing values by date to recompute total number of steps taken per day, averaged across all intervals in a day  
 
-```{r Daily summarization of filled activity , echo=TRUE}
+
+```r
 dailyActivityFill <- summarize(group_by(activityFill,date),sum(steps))
 names(dailyActivityFill) <- c("date", "StepSum")
 ```
 7. Draw a histogram of the total number of steps per day with missing steps data filled up  
 
-```{r Histogram of the total number of steps per day with filling of missing data, fig.height=5, fig.width=10}
+
+```r
 histogram(~dailyActivityFill$StepSum, breaks=30, na.rm=TRUE, main="Revised Histogram of Total Number of Steps/Day - Gaps Filled", xlab="Total Number of Steps/Day", ylab="Relative Frequency")
 ```
 
+![plot of chunk Histogram of the total number of steps per day with filling of missing data](figure/Histogram of the total number of steps per day with filling of missing data-1.png) 
+
 8. Compute the mean of the total number of steps taken per day with missing steps data filled up  
 
-```{r Mean of the total number of steps taken per day with missing steps data filled up, echo=TRUE}
+
+```r
 mean(dailyActivityFill$StepSum)
+```
+
+```
+## [1] 10766.19
 ```
 9. Compute the median of the total number of steps taken per day with missing steps data filled up  
 
-```{r Median of the total number of steps taken per day with missing steps data filled up, echo=TRUE}
+
+```r
 median(dailyActivityFill$StepSum)
+```
+
+```
+## [1] 10766.19
 ```
 10. Do these values differ from the estimates from the first part of the assignment? What is the impact of inputing missing data on the estimates of the total daily number of steps?  
 
-```{r Impact of missing NA step data, echo = FALSE}
-NAStatsImpact <- data.frame(2,2)
-names(NAStatsImpact) <- c("Mean","Median")
-#row.names(NAStatsImpact) <- c("Stats_NA","Stats_NAFill")
 
-NAStatsImpact[1,1] <- 9354.23
-NAStatsImpact[2,1] <- 10766.19
-NAStatsImpact[1,2] <- 10395.00
-NAStatsImpact[2,2] <- 10766.19
-
-NAStatsImpact
+```
+##       Mean   Median
+## 1  9354.23 10395.00
+## 2 10766.19 10766.19
 ```
 The histogram of the total daily number of steps with missing step data (NA) shows a bi-modal distribution. The histogram of the total daily number of steps after filling in missing step shows distinctly a single mode distribution resembling a normal distribution. The mean is shifting from 9354.23 with missing step data to 10766.19 after filling in the missing data. The mean and median are the same at 10766.19 after filling in the missing step data.  
 
@@ -200,7 +291,8 @@ The histogram of the total daily number of steps with missing step data (NA) sho
 
 1. Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.  
 
-```{r Adding weekday and weekend factor variable, echo=TRUE}
+
+```r
 WDAY <- wday(activityFill$date,label = TRUE, abbr = TRUE)
 activityFill <- mutate(activityFill, WDAY)
 
@@ -214,17 +306,16 @@ names(fiveMinActivityWDType) <- c("interval", "WDAYType", "AvgNumberOfSteps")
 summary(fiveMinActivityWDType)
 ```
 
+```
+##     interval         WDAYType   AvgNumberOfSteps 
+##  Min.   :   0.0   weekday:288   Min.   :  0.000  
+##  1st Qu.: 588.8   weekend:288   1st Qu.:  2.047  
+##  Median :1177.5                 Median : 28.133  
+##  Mean   :1177.5                 Mean   : 38.988  
+##  3rd Qu.:1766.2                 3rd Qu.: 61.263  
+##  Max.   :2355.0                 Max.   :230.378
+```
+
 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis)  
 
-```{r Time Series Panel Plot - Average steps taken per 5 minute interval - Weekday and Weekend, echo=FALSE, fig.height=10, fig.width=10}
-xyplot(AvgNumberOfSteps ~ interval | WDAYType,
-       fiveMinActivityWDType,
-       type = "l", 
-       lty = c(1), 
-       lwd = c(2), 
-       ##na.rm=TRUE, 
-       main="Time Series of Avg number of steps vs 5-Minute Interval", 
-       ylab="Number of steps",
-       xlab="5-Minute Interval",
-       layout=c(1,2))
-```
+![plot of chunk Time Series Panel Plot - Average steps taken per 5 minute interval - Weekday and Weekend](figure/Time Series Panel Plot - Average steps taken per 5 minute interval - Weekday and Weekend-1.png) 
