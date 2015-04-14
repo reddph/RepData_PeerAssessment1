@@ -294,15 +294,28 @@ The histogram of the total daily number of steps with missing step data (NA) sho
 
 
 ```r
+## Use wday function from lubridate packate to label a date by its week day
 WDAY <- wday(activityFill$date,label = TRUE, abbr = TRUE)
+
+## Add the WDAY column to the activityFill data frame
 activityFill <- mutate(activityFill, WDAY)
 
+## Define a function to classify a day as weekend or weekday
 FnWDayType <- function(x){switch(as.character(x), Sat=, Sun="weekend", "weekday")}
 
+## Use the above function with lapply on the WDAY column added above. Since lapply
+## returns a list, use unlist function to derive a column (WDAYType)
 WDAYType <- unlist(lapply(activityFill$WDAY,FnWDayType))
+
+## Add the WDAYType column to activityFill data frame as a factored variable with two
+## distinct levels: weekend, and weekday
 activityFill <- mutate(activityFill, WDAYType=as.factor(WDAYType))
+
+## Compute the average number of steps taken grouped by interval and WDAYType. This
+## summarization yields a data frame designated as fiveMinActivityWDType
 fiveMinActivityWDType <- summarize(group_by(activityFill,interval,WDAYType),mean(steps))
 
+## Assign meaningful column names to fiveMinActivityWDType
 names(fiveMinActivityWDType) <- c("interval", "WDAYType", "AvgNumberOfSteps")
 summary(fiveMinActivityWDType)
 ```
@@ -318,5 +331,18 @@ summary(fiveMinActivityWDType)
 ```
 
 - Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis)  
+
+
+```r
+xyplot(AvgNumberOfSteps ~ interval | WDAYType,
+       fiveMinActivityWDType,
+       type = "l", 
+       lty = c(1), 
+       lwd = c(2), 
+       main="Time Series of Avg number of steps vs 5-Minute Interval", 
+       ylab="Number of steps",
+       xlab="5-Minute Interval",
+       layout=c(1,2))
+```
 
 ![plot of chunk Time Series Panel Plot - Average steps taken per 5 minute interval - Weekday and Weekend](figure/Time Series Panel Plot - Average steps taken per 5 minute interval - Weekday and Weekend-1.png) 
